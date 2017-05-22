@@ -19,6 +19,8 @@ var (
 	pupPreformatted  bool          = false
 	pupPrintColor    bool          = false
 	pupEscapeHTML    bool          = true
+	pupNewLine       string        = "\n"
+	pupOneLine       bool          = false
 	pupIndentString  string        = " "
 	pupDisplayer     Displayer     = TreeDisplayer{}
 )
@@ -56,6 +58,7 @@ Flags
     -n --number        print number of elements selected
     -l --limit         restrict number of levels printed
     -p --plain         don't escape html
+    -o --oneline       display each match in one line
     --pre              preserve preformatted text
     --charset          specify the charset for pup to use
     --version          display version
@@ -118,6 +121,10 @@ func ProcessFlags(cmds []string) (nonFlagCmds []string, err error) {
 		case "--charset":
 			pupCharset = cmds[i+1]
 			i++
+		case "-o", "--oneline":
+			pupOneLine = true
+			pupNewLine = ""
+			pupIndentString = ""
 		case "--version":
 			fmt.Println(VERSION)
 			os.Exit(0)

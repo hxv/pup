@@ -103,7 +103,7 @@ func (t TreeDisplayer) printPre(n *html.Node) {
 		if pupEscapeHTML {
 			data = html.EscapeString(data)
 		}
-		fmt.Printf("<!--%s-->\n", data)
+		fmt.Printf("<!--%s-->" + pupNewLine, data)
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			t.printPre(c)
 		}
@@ -125,17 +125,20 @@ func (t TreeDisplayer) printNode(n *html.Node, level int) {
 				s = html.EscapeString(s)
 			}
 		}
+		if pupOneLine {
+			s = strings.Replace(s, "\n", " ", -1)
+		}
 		s = strings.TrimSpace(s)
 		if s != "" {
 			t.printIndent(level)
-			fmt.Println(s)
+			fmt.Print(s + pupNewLine)
 		}
 	case html.ElementNode:
 		t.printIndent(level)
 		// TODO: allow pre with color
 		if n.DataAtom == atom.Pre && !pupPrintColor && pupPreformatted {
 			t.printPre(n)
-			fmt.Println()
+			fmt.Print(pupNewLine)
 			return
 		}
 		if pupPrintColor {
@@ -149,6 +152,9 @@ func (t TreeDisplayer) printNode(n *html.Node, level int) {
 			if pupEscapeHTML {
 				val = html.EscapeString(val)
 			}
+			if pupOneLine {
+				val = strings.Replace(val, "\n", " ", -1)
+			}
 			if pupPrintColor {
 				fmt.Print(" ")
 				attrKeyColor.Printf("%s", a.Key)
@@ -159,19 +165,22 @@ func (t TreeDisplayer) printNode(n *html.Node, level int) {
 			}
 		}
 		if pupPrintColor {
-			tokenColor.Println(">")
+			tokenColor.Print(">")
 		} else {
-			fmt.Println(">")
+			fmt.Print(">")
 		}
+		fmt.Print(pupNewLine)
 		if !isVoidElement(n) {
 			t.printChildren(n, level+1)
 			t.printIndent(level)
 			if pupPrintColor {
 				tokenColor.Print("</")
 				tagColor.Printf("%s", n.Data)
-				tokenColor.Println(">")
+				tokenColor.Print(">")
+
+				fmt.Print(pupNewLine)
 			} else {
-				fmt.Printf("</%s>\n", n.Data)
+				fmt.Printf("</%s>" + pupNewLine, n.Data)
 			}
 		}
 	case html.CommentNode:
@@ -181,13 +190,17 @@ func (t TreeDisplayer) printNode(n *html.Node, level int) {
 			data = html.EscapeString(data)
 		}
 		if pupPrintColor {
-			commentColor.Printf("<!--%s-->\n", data)
+			commentColor.Printf("<!--%s-->" + pupNewLine, data)
 		} else {
-			fmt.Printf("<!--%s-->\n", data)
+			fmt.Printf("<!--%s-->" + pupNewLine, data)
 		}
 		t.printChildren(n, level)
 	case html.DoctypeNode, html.DocumentNode:
 		t.printChildren(n, level)
+	}
+
+	if level == 0 && pupOneLine {
+		fmt.Print("\n")
 	}
 }
 
@@ -195,7 +208,7 @@ func (t TreeDisplayer) printChildren(n *html.Node, level int) {
 	if pupMaxPrintLevel > -1 {
 		if level >= pupMaxPrintLevel {
 			t.printIndent(level)
-			fmt.Println("...")
+			fmt.Print("..." + pupNewLine)
 			return
 		}
 	}
@@ -225,6 +238,9 @@ func (t TextDisplayer) Display(nodes []*html.Node) {
 					data = html.EscapeString(data)
 				}
 			}
+			if pupOneLine {
+				data = strings.Replace(data, "\n", " ", -1)
+			}
 			fmt.Println(data)
 		}
 		children := []*html.Node{}
@@ -250,6 +266,9 @@ func (a AttrDisplayer) Display(nodes []*html.Node) {
 				val := attr.Val
 				if pupEscapeHTML {
 					val = html.EscapeString(val)
+				}
+				if pupOneLine {
+					val = strings.Replace(val, "\n", " ", -1)
 				}
 				fmt.Printf("%s\n", val)
 			}
